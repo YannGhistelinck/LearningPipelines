@@ -2,7 +2,15 @@ server {
     listen {{ app_port }};
     listen [::]:{{ app_port }};
 
+    # Fonctionne avec un nom de domaine ou une adresse IP
+    {% if app_domain is match("^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$") %}
+    # Configuration pour adresse IP uniquement
+    server_name {{ app_domain }};
+    {% else %}
+    # Configuration pour nom de domaine
     server_name {{ app_domain }} www.{{ app_domain }};
+    {% endif %}
+
     root {{ app_root }}/current;
     index index.html;
 
@@ -54,11 +62,16 @@ server {
 }
 
 # Uncomment for SSL/HTTPS (requires SSL certificate)
+# Note: SSL fonctionne mieux avec un nom de domaine
 # server {
 #     listen {{ app_ssl_port }} ssl http2;
 #     listen [::]:{{ app_ssl_port }} ssl http2;
 #
+#     {% if app_domain is match("^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$") %}
+#     server_name {{ app_domain }};
+#     {% else %}
 #     server_name {{ app_domain }} www.{{ app_domain }};
+#     {% endif %}
 #
 #     ssl_certificate /etc/ssl/certs/{{ app_domain }}.crt;
 #     ssl_certificate_key /etc/ssl/private/{{ app_domain }}.key;

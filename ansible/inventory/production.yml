@@ -5,11 +5,13 @@ all:
       hosts:
         web-server-01:
           ansible_host: "{{ lookup('env', 'PRODUCTION_SERVER') }}"
+          ansible_port: "{{ ansible_port | default(22) }}"
           ansible_user: deploy
           ansible_python_interpreter: /usr/bin/python3
       vars:
         app_name: learning-pipelines
-        app_domain: "{{ lookup('env', 'PRODUCTION_DOMAIN') | default('example.com') }}"
+        # Si PRODUCTION_DOMAIN n'est pas défini, utilise l'IP du serveur
+        app_domain: "{{ lookup('env', 'PRODUCTION_DOMAIN') | default(lookup('env', 'PRODUCTION_SERVER')) }}"
         app_port: 80
         app_ssl_port: 443
         app_root: /var/www/learning-pipelines

@@ -1,0 +1,31 @@
+---
+# Exemple de configuration pour un homelab
+# Copiez ce fichier vers production.yml et adaptez les valeurs
+all:
+  children:
+    production:
+      hosts:
+        homelab-server:
+          # Adresse IP locale de votre homelab
+          ansible_host: 192.168.1.100
+          # Port SSH personnalisé (souvent utilisé dans les homelabs)
+          ansible_port: 8022
+          ansible_user: deploy
+          ansible_python_interpreter: /usr/bin/python3
+      vars:
+        app_name: learning-pipelines
+        # Pour un homelab, utilisez directement l'IP au lieu d'un domaine
+        # L'application sera accessible via http://192.168.1.100
+        app_domain: 192.168.1.100
+        app_port: 80
+        app_ssl_port: 443
+        app_root: /var/www/learning-pipelines
+        nginx_user: www-data
+        deploy_user: deploy
+        nodejs_version: "18"
+
+# Notes pour homelab:
+# 1. Assurez-vous que le port 80 est accessible depuis votre réseau local
+# 2. Si vous utilisez un port SSH non standard, vérifiez votre firewall
+# 3. Pour tester SSH: ssh -p 8022 deploy@192.168.1.100
+# 4. L'application sera accessible à: http://192.168.1.100

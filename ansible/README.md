@@ -31,9 +31,10 @@ ansible/
 
 Set these in your GitHub repository secrets or export them before running:
 
-- `PRODUCTION_SERVER`: IP address or hostname of your production server
-- `PRODUCTION_DOMAIN`: Domain name for your application
-- `SSH_PRIVATE_KEY`: SSH private key for authentication
+- `PRODUCTION_SERVER`: IP address or hostname of your production server (required)
+- `PRODUCTION_DOMAIN`: Domain name for your application (optional - uses IP if not set)
+- `SSH_PRIVATE_KEY`: SSH private key for authentication (required)
+- `SSH_PORT`: Custom SSH port (optional - defaults to 22)
 
 ### Inventory Configuration
 
@@ -57,11 +58,22 @@ The deployment runs automatically when pushing to the `main` branch via GitHub A
 # Install Ansible
 pip install ansible
 
-# Run deployment
+# Export environment variables
+export PRODUCTION_SERVER=192.168.1.100
+export PRODUCTION_DOMAIN=app.example.com  # Optionnel - utilise l'IP si non défini
+
+# Run deployment (port SSH par défaut: 22)
 ansible-playbook -i inventory/production.yml deploy.yml \
   --private-key ~/.ssh/your-key \
   --extra-vars "build_artifact=../build-version.tar.gz" \
   --extra-vars "app_version=v1.0.0"
+
+# Run deployment avec port SSH personnalisé (ex: homelab)
+ansible-playbook -i inventory/production.yml deploy.yml \
+  --private-key ~/.ssh/your-key \
+  --extra-vars "build_artifact=../build-version.tar.gz" \
+  --extra-vars "app_version=v1.0.0" \
+  --extra-vars "ansible_port=8022"
 ```
 
 ### Deploy specific roles

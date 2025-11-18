@@ -23,11 +23,16 @@ GitHub Push (main) → Tests → Build → Deploy (Ansible) → Verify
 
 Configurez les secrets suivants dans votre repository GitHub (`Settings → Secrets and variables → Actions`):
 
-| Secret | Description | Exemple |
-|--------|-------------|---------|
-| `PRODUCTION_SERVER` | Adresse IP ou hostname du serveur | `192.168.1.100` ou `server.example.com` |
-| `PRODUCTION_DOMAIN` | Nom de domaine de l'application | `app.example.com` |
-| `SSH_PRIVATE_KEY` | Clé SSH privée pour l'authentification | Contenu de `~/.ssh/id_rsa` |
+| Secret | Description | Requis | Exemple |
+|--------|-------------|--------|---------|
+| `PRODUCTION_SERVER` | Adresse IP ou hostname du serveur | ✅ Oui | `192.168.1.100` ou `server.example.com` |
+| `PRODUCTION_DOMAIN` | Nom de domaine de l'application | ❌ Non* | `app.example.com` |
+| `SSH_PRIVATE_KEY` | Clé SSH privée pour l'authentification | ✅ Oui | Contenu de `~/.ssh/id_rsa` |
+| `SSH_PORT` | Port SSH personnalisé | ❌ Non** | `8022` |
+
+**Notes:**
+- \* Si `PRODUCTION_DOMAIN` n'est pas défini, le système utilisera `PRODUCTION_SERVER` (adresse IP)
+- \** Par défaut, le port 22 est utilisé. Définissez `SSH_PORT` si vous utilisez un port différent (ex: 8022 pour un homelab)
 
 ### 2. Préparation du Serveur
 
@@ -50,12 +55,44 @@ chmod 700 ~/.ssh
 chmod 600 ~/.ssh/authorized_keys
 ```
 
-### 3. Configuration DNS
+### 3. Configuration DNS (optionnel)
+
+**Pour un serveur avec nom de domaine:**
 
 Configurez un enregistrement DNS de type A pointant vers votre serveur:
 
 ```
 app.example.com → IP_DU_SERVEUR
+```
+
+**Pour un homelab sans nom de domaine:**
+
+Vous pouvez ignorer cette étape. L'application sera accessible directement via l'adresse IP:
+
+```
+http://192.168.1.100
+```
+
+### 4. Exemple de Configuration Homelab
+
+Pour un homelab typique (IP locale, port SSH personnalisé):
+
+**Secrets GitHub à configurer:**
+```
+PRODUCTION_SERVER = 192.168.1.100
+SSH_PORT = 8022
+SSH_PRIVATE_KEY = [votre clé privée]
+# PRODUCTION_DOMAIN non défini - l'IP sera utilisée
+```
+
+**Connexion SSH manuelle pour tester:**
+```bash
+ssh -p 8022 deploy@192.168.1.100
+```
+
+**Accès à l'application après déploiement:**
+```
+http://192.168.1.100
 ```
 
 ## Utilisation du Pipeline
