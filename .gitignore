@@ -21,3 +21,15 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Deployment
+*.tar.gz
+*.retry
+.ansible/
+/ansible/inventory/hosts
+/ansible/.vault_pass
+
+# SSH keys
+*.pem
+*.key
+id_rsa*

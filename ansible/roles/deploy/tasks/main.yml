@@ -1,0 +1,95 @@
+---
+- name: Create deployment directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ deploy_user }}"
+    group: "{{ nginx_user }}"
+    mode: '0755'
+  loop:
+    - "{{ app_root }}"
+    - "{{ app_root }}/releases"
+    - "{{ app_root }}/shared"
+
+- name: Set release directory
+  set_fact:
+    release_dir: "{{ app_root }}/releases/{{ app_version | default(ansible_date_time.epoch) }}"
+
+- name: Create release directory
+  file:
+    path: "{{ release_dir }}"
+    state: directory
+    owner: "{{ deploy_user }}"
+    group: "{{ nginx_user }}"
+    mode: '0755'
+
+- name: Copy build artifact to server
+  copy:
+    src: "{{ build_artifact }}"
+    dest: "/tmp/build-{{ app_version | default(ansible_date_time.epoch) }}.tar.gz"
+    owner: "{{ deploy_user }}"
+    group: "{{ nginx_user }}"
+    mode: '0644'
+
+- name: Extract build artifact
+  unarchive:
+    src: "/tmp/build-{{ app_version | default(ansible_date_time.epoch) }}.tar.gz"
+    dest: "{{ release_dir }}"
+    remote_src: yes
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_user }}"
+
+- name: Check if current symlink exists
+  stat:
+    path: "{{ app_root }}/current"
+  register: current_link
+
+- name: Backup current deployment
+  command: "mv {{ app_root }}/current {{ app_root }}/releases/backup-{{ ansible_date_time.epoch }}"
+  when: current_link.stat.exists and current_link.stat.islnk
+
+- name: Create symlink to current release
+  file:
+    src: "{{ release_dir }}"
+    dest: "{{ app_root }}/current"
+    state: link
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_user }}"
+    force: yes
+
+- name: Set proper permissions on application files
+  file:
+    path: "{{ app_root }}/current"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_user }}"
+    recurse: yes
+    mode: '0755'
+
+- name: Clean up old releases (keep last 5)
+  shell: |
+    cd {{ app_root }}/releases
+    ls -t | tail -n +6 | xargs -r rm -rf
+  args:
+    executable: /bin/bash
+  changed_when: false
+
+- name: Clean up temporary build artifact
+  file:
+    path: "/tmp/build-{{ app_version | default(ansible_date_time.epoch) }}.tar.gz"
+    state: absent
+
+- name: Create deployment marker file
+  copy:
+    content: |
+      Deployed at: {{ ansible_date_time.iso8601 }}
+      Version: {{ app_version | default('unknown') }}
+      Deployed by: {{ ansible_user_id }}
+    dest: "{{ app_root }}/current/DEPLOYMENT_INFO"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_user }}"
+    mode: '0644'
+
+- name: Reload nginx to apply changes
+  service:
+    name: nginx
+    state: reloaded

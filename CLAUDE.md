@@ -73,3 +73,44 @@ public/
 - This project uses Create React App, so webpack/babel configurations are abstracted
 - To modify build configuration, you would need to run `npm run eject` (irreversible)
 - The project includes web vitals performance monitoring via `reportWebVitals.js`
+
+## Deployment Pipeline
+
+### GitHub Actions CI/CD
+The project includes an automated production deployment pipeline at `.github/workflows/production-deploy.yml`:
+
+**Pipeline stages:**
+1. **Test**: Runs all tests with coverage reporting
+2. **Build**: Creates optimized production build and artifacts
+3. **Deploy**: Uses Ansible to deploy to production servers
+4. **Verify**: Performs health checks post-deployment
+
+**Trigger**: Automatic on push to `main` branch, or manual via GitHub Actions UI
+
+### Ansible Deployment
+Deployment is handled by Ansible playbooks in the `ansible/` directory:
+
+```bash
+# Manual deployment
+cd ansible
+ansible-playbook -i inventory/production.yml deploy.yml \
+  --private-key ~/.ssh/deploy_key \
+  --extra-vars "build_artifact=../build.tar.gz"
+```
+
+**Ansible roles:**
+- `nginx`: Installs and configures nginx web server with optimized settings
+- `deploy`: Handles application deployment with release management (keeps last 5 releases)
+
+**Key features:**
+- Zero-downtime deployments via symlink switching
+- Automatic rollback capability
+- Release history management
+- Health check verification
+
+### Required GitHub Secrets
+- `PRODUCTION_SERVER`: Server IP/hostname
+- `PRODUCTION_DOMAIN`: Application domain name
+- `SSH_PRIVATE_KEY`: SSH key for server authentication
+
+**Documentation**: See `DEPLOYMENT.md` for complete setup and usage guide, and `ansible/README.md` for Ansible-specific documentation.

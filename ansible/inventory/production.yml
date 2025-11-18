@@ -1,0 +1,18 @@
+---
+all:
+  children:
+    production:
+      hosts:
+        web-server-01:
+          ansible_host: "{{ lookup('env', 'PRODUCTION_SERVER') }}"
+          ansible_user: deploy
+          ansible_python_interpreter: /usr/bin/python3
+      vars:
+        app_name: learning-pipelines
+        app_domain: "{{ lookup('env', 'PRODUCTION_DOMAIN') | default('example.com') }}"
+        app_port: 80
+        app_ssl_port: 443
+        app_root: /var/www/learning-pipelines
+        nginx_user: www-data
+        deploy_user: deploy
+        nodejs_version: "18"

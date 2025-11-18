@@ -1,0 +1,58 @@
+---
+- name: Deploy Learning Pipelines React Application
+  hosts: production
+  become: yes
+  gather_facts: yes
+
+  vars:
+    timestamp: "{{ ansible_date_time.epoch }}"
+
+  pre_tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      when: ansible_os_family == "Debian"
+
+    - name: Ensure required system packages are installed
+      apt:
+        name:
+          - curl
+          - git
+          - unzip
+          - software-properties-common
+        state: present
+      when: ansible_os_family == "Debian"
+
+  roles:
+    - role: nginx
+      tags: ['nginx', 'webserver']
+
+    - role: deploy
+      tags: ['deploy', 'application']
+
+  post_tasks:
+    - name: Verify nginx is running
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Test application accessibility
+      uri:
+        url: "http://{{ app_domain }}"
+        status_code: 200
+        timeout: 10
+      register: app_check
+      retries: 3
+      delay: 5
+      until: app_check.status == 200
+
+    - name: Display deployment summary
+      debug:
+        msg:
+          - "Deployment completed successfully!"
+          - "Application: {{ app_name }}"
+          - "Version: {{ app_version | default('latest') }}"
+          - "Domain: {{ app_domain }}"
+          - "Deployed at: {{ ansible_date_time.iso8601 }}"
