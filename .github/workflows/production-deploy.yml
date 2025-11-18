@@ -9,8 +9,8 @@ on:
 env:
   NODE_VERSION: '18'
   PRODUCTION_SERVER: ${{ secrets.PRODUCTION_SERVER }}
-  PRODUCTION_DOMAIN: ${{ secrets.PRODUCTION_DOMAIN || secrets.PRODUCTION_SERVER }}
-  SSH_PORT: ${{ secrets.SSH_PORT || '22' }}
+  PRODUCTION_DOMAIN: ${{ secrets.PRODUCTION_DOMAIN && secrets.PRODUCTION_DOMAIN || secrets.PRODUCTION_SERVER }}
+  SSH_PORT: ${{ secrets.SSH_PORT && secrets.SSH_PORT || '22' }}
 
 jobs:
   test:
@@ -81,7 +81,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: production
-      url: http://${{ secrets.PRODUCTION_DOMAIN || secrets.PRODUCTION_SERVER }}
+      url: http://${{ secrets.PRODUCTION_DOMAIN && secrets.PRODUCTION_DOMAIN || secrets.PRODUCTION_SERVER }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
