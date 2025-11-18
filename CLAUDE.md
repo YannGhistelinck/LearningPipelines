@@ -109,8 +109,11 @@ ansible-playbook -i inventory/production.yml deploy.yml \
 - Health check verification
 
 ### Required GitHub Secrets
-- `PRODUCTION_SERVER`: Server IP/hostname
-- `PRODUCTION_DOMAIN`: Application domain name
-- `SSH_PRIVATE_KEY`: SSH key for server authentication
+- `PRODUCTION_SERVER`: Server IP/hostname (required)
+- `PRODUCTION_DOMAIN`: Application domain name (optional - uses IP if not set)
+- `SSH_PRIVATE_KEY`: SSH key for server authentication (required)
+- `SSH_PORT`: Custom SSH port (optional - defaults to 22)
+
+**Homelab support**: The pipeline works with IP-only setups and custom SSH ports. See `DEPLOYMENT.md` section 4 for homelab configuration example.
 
 **Documentation**: See `DEPLOYMENT.md` for complete setup and usage guide, and `ansible/README.md` for Ansible-specific documentation.
